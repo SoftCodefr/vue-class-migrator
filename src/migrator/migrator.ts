@@ -23,10 +23,15 @@ const migrateTsFile = async (project: Project, sourceFile: SourceFile): Promise<
     migrateVueClassProperties(migrationManager);
     migrateVuexDecorators(migrationManager);
   } catch (error) {
-    await outFile.deleteImmediately();
+    // await outFile.deleteImmediately();
+    logger.error(`Error migrating ${sourceFile.getFilePath()}`);
     throw error;
   }
-  return outFile.moveImmediately(sourceFile.getFilePath(), { overwrite: true });
+  const out = await Promise.all([
+    outFile.copyImmediately(sourceFile.getFilePath(), { overwrite: true }),
+    outFile.deleteImmediately(),
+  ]);
+  return out[0];
 };
 
 const migrateVueFile = async (project: Project, vueSourceFile: SourceFile) => {
