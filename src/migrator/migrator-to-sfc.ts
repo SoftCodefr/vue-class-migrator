@@ -1,6 +1,7 @@
 import path from 'path';
 import { Project, SourceFile } from 'ts-morph';
 import logger from './logger';
+import migrateVueTemplate from './vue-template';
 
 export const getScriptContent = (vueSourceFile: SourceFile): string | undefined => {
   const scriptTagRegex = /<script[^>]*>([\s\S]*?)<\/script>/;
@@ -8,7 +9,7 @@ export const getScriptContent = (vueSourceFile: SourceFile): string | undefined 
   return match ? match[1] : undefined;
 };
 
-export const injectScript = (tsSourceFile: SourceFile, vueTemplate: string): string => {
+const injectScript = (tsSourceFile: SourceFile, vueTemplate: string): string => {
   const scriptTag = vueTemplate.match(/<script.*\/>|<script.*>([\s\S]*)<\/script>/);
 
   if (!scriptTag) {
@@ -42,6 +43,31 @@ const injectScss = (
     styleTag[0],
     `<style lang="scss"${scoped ? ' scoped' : ''}>\n${scssSourceFile.getText()}\n</style>`,
   );
+};
+
+const injectTemplate = (tsSourceFile: SourceFile, vueTemplate: string): string => {
+  const templateTag = vueTemplate.match(/<template.*\/>|<template.*>([\s\S]*)<\/template>/);
+
+  if (!templateTag) {
+    throw new Error('Template tag not found on vue file.');
+  }
+
+  const outTemplate = migrateVueTemplate(templateTag[0]);
+
+  return vueTemplate.replace(
+    templateTag[0],
+    `<template>\n${outTemplate}\n</template>`,
+  );
+};
+
+export const injectComponent = (
+  tsSourceFile: SourceFile,
+  vueTemplate: string,
+) => {
+  let componentTextFile = injectScript(tsSourceFile, vueTemplate);
+  componentTextFile = injectTemplate(tsSourceFile, componentTextFile);
+
+  return componentTextFile;
 };
 
 export const getScriptSrc = (vueSourceFile: SourceFile): string | undefined => {

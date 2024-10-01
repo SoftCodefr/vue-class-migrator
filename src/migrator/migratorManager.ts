@@ -11,7 +11,8 @@ import {
 import { addPropertyObject, getArrayProperty, getObjectProperty } from './utils';
 import { ComputedProps, MigratePartProps } from './types/migrator';
 import { supportedDecorators } from './config';
-import getDefineComponentInit from './migrate-component-decorator';
+// import getDefineComponentInit from './migrate-component-decorator';
+import logger from './logger';
 
 export default class MigrationManager {
   private _clazz: ClassDeclaration;
@@ -236,25 +237,13 @@ export const createMigrationManager = (
       }
     });
 
-  const defineComponentInitObject = getDefineComponentInit(sourceFileClass);
+  // const defineComponentInitObject = getDefineComponentInit(sourceFileClass);
   let clazzReplacement: string;
-  if (!outClazz.getDefaultKeyword()) {
-    // Non default exported class
-    clazzReplacement = [
-      outClazz?.getExportKeyword()?.getText(),
-      `const ${outClazz.getName()} =`,
-      `defineComponent(${defineComponentInitObject})`,
-    ]
-      .filter((s) => s)
-      .join(' ');
+  if (outClazz.getDefaultKeyword()) {
+    // replace 'default export class' by 'class'
+    clazzReplacement = outClazz.getText().replace('default ', '');
   } else {
-    clazzReplacement = [
-      outClazz?.getExportKeyword()?.getText(),
-      outClazz?.getDefaultKeywordOrThrow()?.getText(),
-      `defineComponent(${defineComponentInitObject})`,
-    ]
-      .filter((s) => s)
-      .join(' ');
+    logger.error('Export not supported');
   }
 
   // Main structure

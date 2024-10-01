@@ -10,8 +10,8 @@ export default (outFile: SourceFile) => {
 
   if (!vueImport) {
     outFile.addImportDeclaration({
-      defaultImport: '{ defineComponent }',
-      moduleSpecifier: 'vue',
+      defaultImport: '{ Component, Vue, toNative }',
+      moduleSpecifier: 'vue-facing-decorator',
     });
   } else {
     vueImport.addNamedImport('defineComponent');

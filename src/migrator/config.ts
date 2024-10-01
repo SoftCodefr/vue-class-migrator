@@ -21,6 +21,7 @@ export const vueSpecialMethods = [
 
 export const customsDecorators = [
   'Apollo',
+  'State2Way',
 ];
 
 export const supportedDecorators = [

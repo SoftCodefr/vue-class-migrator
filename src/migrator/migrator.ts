@@ -6,8 +6,8 @@ import {
 import logger from './logger';
 import migrateVueClassComponent from './vue-class-component';
 import migrateVueClassProperties from './vue-property-decorator';
-import migrateVuexDecorators from './vuex';
-import { getScriptContent, injectScript, vueFileToSFC } from './migrator-to-sfc';
+// import migrateVuexDecorators from './vuex';
+import { getScriptContent, injectComponent, vueFileToSFC } from './migrator-to-sfc';
 import { createMigrationManager } from './migratorManager';
 
 const migrateTsFile = async (project: Project, sourceFile: SourceFile): Promise<SourceFile> => {
@@ -21,7 +21,7 @@ const migrateTsFile = async (project: Project, sourceFile: SourceFile): Promise<
 
     migrateVueClassComponent(migrationManager);
     migrateVueClassProperties(migrationManager);
-    migrateVuexDecorators(migrationManager);
+    // migrateVuexDecorators(migrationManager);
   } catch (error) {
     // await outFile.deleteImmediately();
     logger.error(`Error migrating ${sourceFile.getFilePath()}`);
@@ -48,7 +48,7 @@ const migrateVueFile = async (project: Project, vueSourceFile: SourceFile) => {
     outFile = await migrateTsFile(project, outFile);
     const vueFileText = vueSourceFile.getText();
     vueSourceFile.removeText();
-    vueSourceFile.insertText(0, injectScript(outFile, vueFileText));
+    vueSourceFile.insertText(0, injectComponent(outFile, vueFileText));
 
     await vueSourceFile.save();
     return vueSourceFile;
